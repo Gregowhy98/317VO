@@ -2,7 +2,11 @@
 
 ## here is huanyao's second project...
 
-## environment
+## setup
+
+### dataset preparing
+
+### environment
 
 ## train networks on your dataset
 
