@@ -1,6 +1,95 @@
 from torch.utils.data import Dataset
+import numpy as np
+import cv2
+from torch.utils.data import Dataset, DataLoader
+from os import listdir
+import os
+
+import json
 
 
+class VODataset(Dataset):
+    def __init__(self, imgfolder, transform=None, is_seg_train=False):
+        self.imgfolder = os.path.normpath(imgfolder)
+        raw_files = listdir(os.path.join(imgfolder, 'image_0'))
+        
+        self.raw_img_files = [os.path.join(imgfolder, 'image_0', ff) for ff in raw_files if (ff.endswith('.png') or ff.endswith('.jpg'))]
+        self.raw_img_files.sort()
+        
+        self.poses_file = os.path.join(os.path.dirname(imgfolder), 'gt_pose.txt')
+        self.gt_poses = np.loadtxt(self.poses_file)
+        
+        self.raw_img_list = [cv2.cvtColor((cv2.imread(i.strip(), cv2.IMREAD_UNCHANGED)), cv2.COLOR_BGR2RGB) for i in
+                           self.raw_img_files]
+        self.is_seg_train = is_seg_train
+        if self.is_seg_train:
+            seg_files = listdir(os.path.join(imgfolder, 'rcnnseg_image_0'))
+            self.seg_img_files = [os.path.join(imgfolder, 'rcnnseg_image_0', ff) for ff in seg_files if (ff.endswith('.png') or ff.endswith('.jpg'))]
+            self.seg_img_files.sort()
+            self.seg_img_list = [cv2.cvtColor(cv2.imread(i.strip(), cv2.IMREAD_GRAYSCALE), cv2.COLOR_GRAY2RGB) for i in self.seg_img_files]
+        else:
+            self.seg_img_list = []
+        
+        print('Find {} image files in {}'.format(len(self.raw_img_list), imgfolder))
+
+        self.N = len(self.raw_img_list) - 1
+        self.transform = transform
+
+    def __len__(self):
+        return self.N
+
+    def __getitem__(self, idx):
+        if self.is_seg_train:
+            batch = {'raw_img': self.raw_img_list[idx],
+                     'seg_img': self.seg_img_list[idx],
+                     'gt_pose': self.gt_poses[idx],
+                     }
+        else:
+            batch = {'raw_img': self.raw_img_list[idx],
+                    'gt_pose': self.gt_poses[idx],
+                    }
+        return batch
+
+# 2frms is used now
+class VODataset_2frms(Dataset):
+    def __init__(self, imgfolder):
+        self.imgfolder = imgfolder
+        raw_files = listdir(imgfolder + 'image_0/')
+        self.raw_img_files = [(imgfolder + 'image_0/' + ff) for ff in raw_files if (ff.endswith('.png') or ff.endswith('.jpg'))]
+        self.raw_img_files.sort()
+        self.poses_file = os.path.join(os.path.dirname(imgfolder), 'gt_pose.txt')
+        self.gt_poses = np.loadtxt(self.poses_file)
+        self.raw_img_list = [cv2.cvtColor((cv2.imread(i.strip(), cv2.IMREAD_UNCHANGED)), cv2.COLOR_BGR2RGB) for i in
+                           self.raw_img_files]
+        print('Find {} image files in {}'.format(len(self.raw_img_list), imgfolder))
+        self.N = len(self.raw_img_list) - 1
+
+    def __len__(self):
+        return self.N
+
+    def __getitem__(self, idx):
+        batch = {'img1': self.raw_img_list[idx],
+                 'img2': self.raw_img_list[idx+1],
+                'gt_pose': self.gt_poses[idx+1], 
+                'gt_prev': self.gt_poses[idx],
+                }
+        return batch
+
+
+
+
+if __name__ == '__main__':
+    testPath = '/home/wenhuanyao/vo_lightglue/KITTI_sequence_1/'
+    mydataset = VODataset_2frms(testPath)
+    mydatasetloader = DataLoader(mydataset, batch_size=1, shuffle=False)
+
+    for i, data in enumerate(mydatasetloader):
+        gt_pose = data['gt_pose'][0].numpy()
+        print(gt_pose)
+        cv2.imshow('1', data['img1'][0].numpy())
+        cv2.imshow('2', data['img2'][0].numpy())
+        cv2.waitKey(1)
+    
 
 class PoseEstimationDataset(Dataset):
 
