@@ -7,7 +7,15 @@ import tqdm
 import pathlib
 import numpy as np
 from torch.utils import tensorboard
-from models.net import GreVONet
+
+from torchvision import transforms
+
+from loaders.dataloader import FeatureFusionDataset
+
+from models import large_hourglass
+from models.superpoint import SuperPointNet
+from models.unet import UNet
+from models.mynet import GreVONet
 
 # ----------------------------- #
 #     Initialization            #
@@ -55,11 +63,9 @@ tforms = transforms.Compose([
 #           Loaders             #
 # ----------------------------- #
 
-train_dataset = speedplus.PyTorchSatellitePoseEstimationDataset(split="train",
-                    speed_root=config["root_dir"], transform_input=tforms, config=config)
-    
-val_dataset = speedplus.PyTorchSatellitePoseEstimationDataset(split="validation",
-                    speed_root=config["root_dir"], transform_input=tforms, config=config)
+train_dataset = FeatureFusionDataset(img_folder=config["root_dir"], transform=tforms)
+
+val_dataset = FeatureFusionDataset(img_folder=config["root_dir"], transform=tforms)
     
 train_loader = torch.utils.data.DataLoader(train_dataset,
                 batch_size=config["batch_size"],
