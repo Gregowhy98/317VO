@@ -29,7 +29,7 @@ def draw_2d_mask(img, poly, color):
 
 
 
-if __name__ is '__main__':
+if __name__ == '__main__':
     txt_path = '/home/wenhuanyao/Dataset/cityscapes_coco/val/munster_000173_000019_leftImg8bit.txt'
     pic_path = '/home/wenhuanyao/Dataset/cityscapes_coco/val/munster_000173_000019_leftImg8bit.png'
     img = cv2.imread(pic_path, cv2.IMREAD_GRAYSCALE)

@@ -14,7 +14,7 @@ from loaders.dataloader import FeatureFusionDataset
 
 from models import large_hourglass
 from models.superpoint import SuperPointNet
-from models.unet import UNet
+from models.abandon.unet import UNet
 from models.mynet import GreVONet
 
 # ----------------------------- #
