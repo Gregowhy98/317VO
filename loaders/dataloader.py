@@ -4,6 +4,7 @@ import cv2
 from torch.utils.data import Dataset, DataLoader
 import os
 
+# todo: add other gt types
 
 def list_png_filenames(directory):  
     png_filenames = []  
@@ -59,7 +60,11 @@ class FeatureFusionDataset(Dataset):
             
         return sample
     
-    
+
+# class FeatureFusionDatasetV2(FeatureFusionDataset):
+#     def __init__(self, img_folder, transform=None):
+#         super().__init__(img_folder, transform)
+#     pass
     
 if __name__ == '__main__':
     testPath = '/home/wenhuanyao/Dataset/cityscapes_coco/test/'   # Change this to your own path

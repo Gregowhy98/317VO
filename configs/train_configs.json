@@ -1,6 +1,7 @@
 {
     "dataset_root_dir": "datasets",
     "pretrained_model_dir": "pretrained_models",
+    "pretrained_sp_model_dir": "pretrained/superpoint_v1.pth",
     "output_dir": "outputs",
 
     "device": "cuda",
