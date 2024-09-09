@@ -2,49 +2,49 @@ import torch
 import cv2
 import numpy as np
 
-# def simple_nms(scores, nms_radius: int):
-#     """ Fast Non-maximum suppression to remove nearby points """
-#     assert (nms_radius >= 0)
+def simple_nms(scores, nms_radius: int):
+    """ Fast Non-maximum suppression to remove nearby points """
+    assert (nms_radius >= 0)
 
-#     def max_pool(x):
-#         return torch.nn.functional.max_pool2d(
-#             x, kernel_size=nms_radius*2+1, stride=1, padding=nms_radius)
+    def max_pool(x):
+        return torch.nn.functional.max_pool2d(
+            x, kernel_size=nms_radius*2+1, stride=1, padding=nms_radius)
 
-#     zeros = torch.zeros_like(scores)
-#     max_mask = scores == max_pool(scores)
-#     for _ in range(2):
-#         supp_mask = max_pool(max_mask.float()) > 0
-#         supp_scores = torch.where(supp_mask, zeros, scores)
-#         new_max_mask = supp_scores == max_pool(supp_scores)
-#         max_mask = max_mask | (new_max_mask & (~supp_mask))
-#     return torch.where(max_mask, scores, zeros)
-
-
-# def top_k_keypoints(keypoints, scores, k):
-#     if k >= len(keypoints):
-#         return keypoints, scores
-#     scores, indices = torch.topk(scores, k, dim=0, sorted=True)
-#     return keypoints[indices], scores
+    zeros = torch.zeros_like(scores)
+    max_mask = scores == max_pool(scores)
+    for _ in range(2):
+        supp_mask = max_pool(max_mask.float()) > 0
+        supp_scores = torch.where(supp_mask, zeros, scores)
+        new_max_mask = supp_scores == max_pool(supp_scores)
+        max_mask = max_mask | (new_max_mask & (~supp_mask))
+    return torch.where(max_mask, scores, zeros)
 
 
-# def sample_descriptors(keypoints, descriptors, s: int = 8):
-#     """ Interpolate descriptors at keypoint locations """
-#     b, c, h, w = descriptors.shape
-#     keypoints = keypoints - s / 2 + 0.5
-#     keypoints /= torch.tensor([(w*s - s/2 - 0.5), (h*s - s/2 - 0.5)],
-#                               ).to(keypoints)[None]
-#     keypoints = keypoints*2 - 1  # normalize to (-1, 1)
-#     args = {'align_corners': True} if torch.__version__ >= '1.3' else {}
-#     descriptors = torch.nn.functional.grid_sample(
-#         descriptors, keypoints.view(b, 1, -1, 2), mode='bilinear', **args)
-#     descriptors = torch.nn.functional.normalize(
-#         descriptors.reshape(b, c, -1), p=2, dim=1)
-#     return descriptors
+def top_k_keypoints(keypoints, scores, k):
+    if k >= len(keypoints):
+        return keypoints, scores
+    scores, indices = torch.topk(scores, k, dim=0, sorted=True)
+    return keypoints[indices], scores
+
+
+def sample_descriptors(keypoints, descriptors, s: int = 8):
+    """ Interpolate descriptors at keypoint locations """
+    b, c, h, w = descriptors.shape
+    keypoints = keypoints - s / 2 + 0.5
+    keypoints /= torch.tensor([(w*s - s/2 - 0.5), (h*s - s/2 - 0.5)],
+                              ).to(keypoints)[None]
+    keypoints = keypoints*2 - 1  # normalize to (-1, 1)
+    args = {'align_corners': True} if torch.__version__ >= '1.3' else {}
+    descriptors = torch.nn.functional.grid_sample(
+        descriptors, keypoints.view(b, 1, -1, 2), mode='bilinear', **args)
+    descriptors = torch.nn.functional.normalize(
+        descriptors.reshape(b, c, -1), p=2, dim=1)
+    return descriptors
 
 
 # ----------------------------------------------------------------------
 class SuperPointNet(torch.nn.Module):
-  """ Pytorch definition of SuperPoint Network. """
+
   def __init__(self):
     super(SuperPointNet, self).__init__()
     self.relu = torch.nn.ReLU(inplace=True)
@@ -96,7 +96,6 @@ class SuperPointNet(torch.nn.Module):
     dn = torch.norm(desc, p=2, dim=1) # Compute the norm.
     desc = desc.div(torch.unsqueeze(dn, 1)) # Divide by norm to normalize.
     return semi, desc
-
 
 class SuperPointFrontend(object):
   """ Wrapper around pytorch net to help with pre and post image processing. """
@@ -210,6 +209,7 @@ class SuperPointFrontend(object):
     semi, coarse_desc = outs[0], outs[1]
     # Convert pytorch -> numpy.
     semi = semi.data.cpu().numpy().squeeze()
+
     # --- Process points.
     dense = np.exp(semi) # Softmax.
     dense = dense / (np.sum(dense, axis=0)+.00001) # Should sum to 1.
@@ -238,6 +238,7 @@ class SuperPointFrontend(object):
     toremoveH = np.logical_or(pts[1, :] < bord, pts[1, :] >= (H-bord))
     toremove = np.logical_or(toremoveW, toremoveH)
     pts = pts[:, ~toremove]
+
     # --- Process descriptor.
     D = coarse_desc.shape[1]
     if pts.shape[1] == 0:
@@ -256,13 +257,13 @@ class SuperPointFrontend(object):
       desc = desc.data.cpu().numpy().reshape(D, -1)
       desc /= np.linalg.norm(desc, axis=0)[np.newaxis, :]
     return pts, desc, heatmap
-
-if __name__ == "__main__":
+  
+def pred_semi_desc():
     img = cv2.imread('demo/demo_pic.png', cv2.IMREAD_GRAYSCALE)
     img = img.astype(np.float32) / 255.0
     weights_path = '/home/wenhuanyao/317VO/pretrained/superpoint_v1.pth'
-    # cv2.imshow('image', img)
     sp = SuperPointNet()
+    print(sp)
     sp.load_state_dict(torch.load(weights_path))
     sp.cuda()
     sp.eval()
@@ -276,5 +277,18 @@ if __name__ == "__main__":
     inp = inp.cuda()
     pred = sp(inp)
     semi = pred[0].data.cpu().numpy().squeeze()
-    dense = np.exp(semi) # Softmax.
+    print(semi.shape)
+    desc = pred[1].data.cpu().numpy().squeeze()
+    print(desc.shape)
+    
+def pred_sp_front():
+    weights_path = '/home/wenhuanyao/317VO/pretrained/superpoint_v1.pth'
+    sp_front = SuperPointFrontend(weights_path, 4, 0.015, 0.7, True)
+    img = cv2.imread('demo/demo_pic.png', cv2.IMREAD_GRAYSCALE)
+    img = img.astype(np.float32) / 255.0
+    pts, desc, heatmap = sp_front.run(img)
+
+if __name__ == "__main__":
+    # pred_semi_desc()
+    pred_sp_front()
     pass
