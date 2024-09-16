@@ -10,7 +10,7 @@ from torch.utils import tensorboard
 
 from torchvision import transforms
 
-from loaders.dataloader import FeatureFusionDataset
+from dataset.mydataset import FeatureFusionDataset
 
 from models import large_hourglass
 from models.superpoint import SuperPointNet

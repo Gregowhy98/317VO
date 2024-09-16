@@ -4,96 +4,73 @@ import cv2
 from torch.utils.data import Dataset, DataLoader
 import os
 
-# todo: add other gt types
+def list_files(directory):
+    filenames = os.listdir(directory)
+    file_paths = [os.path.join(directory, filename) for filename in filenames]
+    return file_paths
 
-def list_png_filenames(directory):  
-    png_filenames = []  
-    for root, dirs, files in os.walk(directory):  
-        for file in files:  
-            if file.lower().endswith('.png'):  
-                png_filenames.append(file)
-    return png_filenames  
+# TODO
+class FeatureFusionTransform(object):
+    pass
 
-def list_txt_filenames(directory):
-    txt_filenames = []
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            if file.lower().endswith('.txt'):
-                txt_filenames.append(file)
-    return txt_filenames
-
-
-class FeatureFusionTrainDataset(Dataset):
-    
-    def __init__(self, img_folder, transform=None):
-        
-        self.img_folder = img_folder
+class FeatureFusionDataset(Dataset):
+    def __init__(self, dataset_folder, transform=None, if_sp=False, if_seg=True):
+        self.dataset_folder = dataset_folder
         self.transform = transform
+        self.if_sp = if_sp
+        self.if_seg = if_seg
         
-        # Load image files
-        self.img_files = list_png_filenames(self.img_folder)
-        self.img_files.sort()
-        self.N = len(self.img_files) -1
+        # load raw image files
+        raw_img_folder = self.dataset_folder + 'raw/'
+        self.raw_img_files = list_files(raw_img_folder)
+        self.raw_img_files.sort()
+        self.N = len(self.raw_img_files)
         
-        # Load seg gt files
-        self.txt_files = list_txt_filenames(self.img_folder)
-        self.txt_files.sort()
+        # load seg gt files
+        if self.if_seg:
+            seg_gt_folder = self.dataset_folder + 'seg/'
+            self.seg_gt_files = list_files(seg_gt_folder)
+            self.seg_gt_files.sort()
+            
+            if len(self.raw_img_files) != len(self.seg_gt_files):
+                raise ValueError('The number of images and seg gt files do not match')
         
-        if len(self.img_files) != len(self.txt_files):
-            raise ValueError('The number of images and txt files do not match')
+        # load sp gt files
+        if self.if_sp:
+            sp_gt_folder = self.dataset_folder + 'sp/'
+            self.sp_gt_files = list_files(sp_gt_folder)
+            self.sp_gt_files.sort()
+            
+            if len(self.raw_img_files) != len(self.sp_gt_files):
+                raise ValueError('The number of images and sp gt files do not match')
         
     def __len__(self):
         return self.N
     
     def __getitem__(self, idx): 
-        # Load image
-        img = cv2.imread(self.img_folder + self.img_files[idx], cv2.IMREAD_UNCHANGED)
-        # Load seg gt
-        with open(self.img_folder + self.txt_files[idx], 'r') as f:
-            seg_gt = f.readlines()
-        seg_gt = np.array(seg_gt).tolist()
-        
-        sample = {'id': self.img_files[idx] ,'img': img, 'seg_gt': seg_gt}
-        
+        raw_img = cv2.imread(self.raw_img_files[idx], cv2.IMREAD_UNCHANGED)
+        if self.if_seg:
+            seg_gt = cv2.imread(self.seg_gt_files[idx], cv2.IMREAD_UNCHANGED)
+            sample = {'raw_img': raw_img, 'seg_gt': seg_gt}
+        if self.if_sp:
+            sp_gt = cv2.imread(self.sp_gt_files[idx], cv2.IMREAD_UNCHANGED)
+            sample = {'raw_img': raw_img, 'sp_gt': sp_gt}
+        if self.if_seg and self.if_sp:
+            seg_gt = cv2.imread(self.seg_gt_files[idx], cv2.IMREAD_UNCHANGED)
+            sp_gt = cv2.imread(self.sp_gt_files[idx], cv2.IMREAD_UNCHANGED)
+            sample = {'raw_img': raw_img, 'seg_gt': seg_gt, 'sp_gt': sp_gt}
         if self.transform:
             sample = self.transform(sample)
             
         return sample
     
-
-class FeatureFusionTestDataset(Dataset):
-    
-    def __init__(self, img_folder, transform=None):
-        
-        self.img_folder = img_folder
-        self.transform = transform
-        
-        # Load image files
-        self.img_files = list_png_filenames(self.img_folder)
-        self.img_files.sort()
-        self.N = len(self.img_files)
-        
-    def __len__(self):
-        return self.N
-    
-    def __getitem__(self, idx): 
-        # Load image
-        img = cv2.imread(self.img_folder + self.img_files[idx], cv2.IMREAD_UNCHANGED)
-        
-        sample = {'id': self.img_files[idx] ,'img': img}
-        
-        if self.transform:
-            sample = self.transform(sample)
-            
-        return sample
     
 if __name__ == '__main__':
-    testPath = '/home/wenhuanyao/Dataset/cityscapes_coco/test/' 
-    mydataset = FeatureFusionTrainDataset(testPath)
+    testPath = '/home/wenhuanyao/Dataset/cityscapes/train/' 
+    mydataset = FeatureFusionDataset(testPath, if_sp=False, if_seg=True)
     mydatasetloader = DataLoader(mydataset, batch_size=1, shuffle=False)
 
     for i, data in enumerate(mydatasetloader):
-        img = data['img'].numpy()
+        raw_img = data['raw_img'].numpy()
         seg_gt = data['seg_gt']
-        img_id = data['id']
-        print(img_id)
+        pass
