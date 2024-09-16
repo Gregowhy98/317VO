@@ -140,6 +140,10 @@ class GreVONet(nn.Module):
 
         # if self.require_stability:
         #     self.ConvSta = nn.Conv2d(256, 3, kernel_size=1)
+    
+    def shared_encoder(self, x):
+        x = self.superpoint(x)
+        return x
         
     def detect(self, x):
         pass

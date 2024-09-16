@@ -23,7 +23,7 @@ def list_txt_filenames(directory):
     return txt_filenames
 
 
-class FeatureFusionDataset(Dataset):
+class FeatureFusionTrainDataset(Dataset):
     
     def __init__(self, img_folder, transform=None):
         
@@ -61,14 +61,35 @@ class FeatureFusionDataset(Dataset):
         return sample
     
 
-# class FeatureFusionDatasetV2(FeatureFusionDataset):
-#     def __init__(self, img_folder, transform=None):
-#         super().__init__(img_folder, transform)
-#     pass
+class FeatureFusionTestDataset(Dataset):
+    
+    def __init__(self, img_folder, transform=None):
+        
+        self.img_folder = img_folder
+        self.transform = transform
+        
+        # Load image files
+        self.img_files = list_png_filenames(self.img_folder)
+        self.img_files.sort()
+        self.N = len(self.img_files)
+        
+    def __len__(self):
+        return self.N
+    
+    def __getitem__(self, idx): 
+        # Load image
+        img = cv2.imread(self.img_folder + self.img_files[idx], cv2.IMREAD_UNCHANGED)
+        
+        sample = {'id': self.img_files[idx] ,'img': img}
+        
+        if self.transform:
+            sample = self.transform(sample)
+            
+        return sample
     
 if __name__ == '__main__':
-    testPath = '/home/wenhuanyao/Dataset/cityscapes_coco/test/'   # Change this to your own path
-    mydataset = FeatureFusionDataset(testPath)
+    testPath = '/home/wenhuanyao/Dataset/cityscapes_coco/test/' 
+    mydataset = FeatureFusionTrainDataset(testPath)
     mydatasetloader = DataLoader(mydataset, batch_size=1, shuffle=False)
 
     for i, data in enumerate(mydatasetloader):

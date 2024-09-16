@@ -3,6 +3,7 @@ import json
 import os
 import numpy as np
 import cv2
+import torch
 
 def load_config(config_path):
     with open(config_path) as json_file:
@@ -26,7 +27,6 @@ def draw_2d_mask(img, poly, color):
     cv2.imshow(mask)
     cv2.waitKey(1)
     return mask
-
 
 
 if __name__ == '__main__':

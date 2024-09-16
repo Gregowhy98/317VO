@@ -1,6 +1,7 @@
 import torch
 import cv2
 import numpy as np
+import netron
 
 def simple_nms(scores, nms_radius: int):
     """ Fast Non-maximum suppression to remove nearby points """
@@ -287,8 +288,15 @@ def pred_sp_front():
     img = cv2.imread('demo/demo_pic.png', cv2.IMREAD_GRAYSCALE)
     img = img.astype(np.float32) / 255.0
     pts, desc, heatmap = sp_front.run(img)
+    
+def netron_vis_net():
+    output_path = '/home/wenhuanyao/317VO/pretrained/superpoint_vis.pth'
+    net = SuperPointNet()
+    torch.onnx.export(net, torch.randn(1, 1, 240, 320), output_path, verbose=True)
+    netron.start(output_path)
 
 if __name__ == "__main__":
     # pred_semi_desc()
-    pred_sp_front()
+    # pred_sp_front()
+    netron_vis_net()
     pass
