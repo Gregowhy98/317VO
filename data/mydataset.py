@@ -14,8 +14,10 @@ class FeatureFusionTransform(object):
     pass
 
 class FeatureFusionDataset(Dataset):
-    def __init__(self, dataset_folder, transform=None, if_sp=False, if_seg=True):
-        self.dataset_folder = dataset_folder
+    def __init__(self, dataset_folder, use='train',transform=None, if_sp=False, if_seg=True):
+        if use not in ['train', 'val', 'test']:
+            raise ValueError('Invalid value for use. Must be one of [train, val, test]')
+        self.dataset_folder = dataset_folder + use + '/'
         self.transform = transform
         self.if_sp = if_sp
         self.if_seg = if_seg
@@ -66,11 +68,11 @@ class FeatureFusionDataset(Dataset):
     
     
 if __name__ == '__main__':
-    testPath = '/home/wenhuanyao/Dataset/cityscapes/train/' 
-    mydataset = FeatureFusionDataset(testPath, if_sp=False, if_seg=True)
+    testPath = '/home/wenhuanyao/Dataset/cityscapes/' 
+    mydataset = FeatureFusionDataset(testPath, use='train',if_sp=False, if_seg=True)
     mydatasetloader = DataLoader(mydataset, batch_size=1, shuffle=False)
 
     for i, data in enumerate(mydatasetloader):
         raw_img = data['raw_img'].numpy()
-        seg_gt = data['seg_gt']
+        seg_gt = data['seg_gt'].numpy()
         pass
