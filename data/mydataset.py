@@ -17,20 +17,20 @@ class FeatureFusionDataset(Dataset):
     def __init__(self, dataset_folder, use='train',transform=None, if_sp=False, if_seg=True):
         if use not in ['train', 'val', 'test']:
             raise ValueError('Invalid value for use. Must be one of [train, val, test]')
-        self.dataset_folder = dataset_folder + use + '/'
+        self.dataset_folder = os.path.join(dataset_folder, use)
         self.transform = transform
         self.if_sp = if_sp
         self.if_seg = if_seg
         
         # load raw image files
-        raw_img_folder = self.dataset_folder + 'raw/'
+        raw_img_folder = os.path.join(self.dataset_folder, 'raw')
         self.raw_img_files = list_files(raw_img_folder)
         self.raw_img_files.sort()
         self.N = len(self.raw_img_files)
         
         # load seg gt files
         if self.if_seg:
-            seg_gt_folder = self.dataset_folder + 'seg/'
+            seg_gt_folder = os.path.join(self.dataset_folder, 'seg')
             self.seg_gt_files = list_files(seg_gt_folder)
             self.seg_gt_files.sort()
             
@@ -39,7 +39,7 @@ class FeatureFusionDataset(Dataset):
         
         # load sp gt files
         if self.if_sp:
-            sp_gt_folder = self.dataset_folder + 'sp/'
+            sp_gt_folder = os.path.join(self.dataset_folder, 'sp')
             self.sp_gt_files = list_files(sp_gt_folder)
             self.sp_gt_files.sort()
             

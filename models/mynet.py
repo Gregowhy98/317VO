@@ -31,7 +31,7 @@ class GreVONet(nn.Module):
         self.encoder = SharedEncoder()
         
         # decoder
-        self.line_head = LineHeadNet()
+        self.line_head = LineHeadNet(n_channels=outdim, n_classes=1, bilinear=False)
         self.keypoint_head = KeypointHeadNet()
         self.seg_head = SegmentHeadNet()
     
@@ -45,23 +45,30 @@ class GreVONet(nn.Module):
     def detect_train(self, x):
         pass
     
-    def foward(self, x):
+    def forward(self, x):
         if self.is_feature:
-            x = self.shared_encoder(x)
-            return x
-        if self.is_segment:
-            x = self.shared_encoder(x)
-            return x
+            out1 = self.shared_encoder(x)
+            out_kpt = self.keypoint_head(out1)
+            out_line = self.line_head(out1)
+            return {"kpt": out_kpt, "line": out_line}
+        # if self.is_segment:
+        #     x = self.shared_encoder(x)
+        #     return x
         if self.is_feature and self.is_segment:
-            x = self.shared_encoder(x)
-            return x
+            out1 = self.shared_encoder(x)
+            out_seg = self.seg_head(out1)
+            out_kpt = self.keypoint_head(out1)
+            out_line = self.line_head(out1)
+            return {"seg": out_seg, "kpt": out_kpt, "line": out_line}
             
 def netron_vis_net():
     output_path = '/home/wenhuanyao/317VO/pretrained/system_vis.pth'
-    net = LineHeadNet(3, 1)
+    net = GreVONet(128, True, True)
     torch.onnx.export(net, torch.randn(1, 3, 256, 256), output_path, verbose=True)
     netron.start(output_path)
     
 if __name__ == '__main__':
     netron_vis_net()
+    # net = GreVONet(128, True, True)
+    # print(net)
     pass
