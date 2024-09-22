@@ -78,7 +78,7 @@ labels = [
     Label(  'car'                  , 26 ,       50 , 'vehicle'         , 7       , True         , False        , (  0,  0,142) ),
     Label(  'truck'                , 27 ,       50 , 'vehicle'         , 7       , True         , False        , (  0,  0, 70) ),
     Label(  'bus'                  , 28 ,       50 , 'vehicle'         , 7       , True         , False        , (  0, 60,100) ),
-    Label(  'caravan'              , 29 ,      210 , 'vehicle'         , 7       , True         , True         , (  0,  0, 90) ),
+    Label(  'caravan'              , 29 ,      255 , 'vehicle'         , 7       , True         , True         , (  0,  0, 90) ),
     Label(  'trailer'              , 30 ,      220 , 'vehicle'         , 7       , True         , True         , (  0,  0,110) ),
     Label(  'train'                , 31 ,        0 , 'vehicle'         , 7       , True         , False        , (  0, 80,100) ),
     Label(  'motorcycle'           , 32 ,        0 , 'vehicle'         , 7       , True         , False        , (  0,  0,230) ),
@@ -98,44 +98,83 @@ def save_rewrite():
 
 if __name__ == '__main__':
     dataset_folder = '/home/wenhuanyao/Dataset/cityscapes/'
-    use = 'train'
-    mydataset = FeatureFusionDataset(dataset_folder, use=use, if_sp=False, if_seg=True)
+    use = 'test'
+    mydataset = FeatureFusionDataset(dataset_folder, use=use, if_sp=False, raw_seg=True, weighted_seg=False)
     mydatasetloader = DataLoader(mydataset, batch_size=1, shuffle=False)
-    output_folder = os.path.join(dataset_folder, use)
+    output_folder = os.path.join(dataset_folder, use, 'weighted_seg')
     
     class_dic = {}
     for obj in labels:
         trainid = obj.trainId
         color = obj.color
         class_dic[color] = trainid
+        
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    # 将 class_dic 转换为张量
+    class_dic_tensor = torch.zeros((256, 256, 256), dtype=torch.uint8, device=device)
+    for color, trainid in class_dic.items():
+        class_dic_tensor[color[0], color[1], color[2]] = trainid
     
     for i, data in tqdm(enumerate(mydataset)):
-        img = data['seg_gt']
+        img = data['raw_seg']
         raw_img = data['raw_img']
-        # color_format = check_color_format(img)
-        # print(f"The image is in {color_format} format.")
-        H, W, _ = img.shape
-        seg_gt = img.copy()
-        # color_list = []
+        img_tensor = torch.tensor(img, device=device)
         
-        # 遍历每个像素
-        for h in range(H):
-            for w in range(W):
-                color_ = tuple(int(c) for c in img[h, w][:3])
-                # if color not in color_list:
-                #     color_list.append(color)
-                color = (color_[2], color_[1], color_[0])
-                if color in class_dic:
-                    seg_gt[h, w][3] = class_dic[color]
-                    # print('color:', color, 'weight:', class_dic[color])
-                    # pass
-                else:
-                    seg_gt[h, w][3] = 0
-                    
-        grey_seg_gt = seg_gt[:, :, 3]
-        # cv2.imwrite(os.path.join(output_folder, 'seg_gt', data['seg_gt_path']), seg_gt)
-        cv2.imwrite('test_seg_gt.png', grey_seg_gt)
-        # cv2.imwrite('raw_seg_gt.png', img)
-        # cv2.imwrite('raw_img.png', raw_img)
+        # 将颜色转换为索引 RGB
+        color_indices = img_tensor[:, :, :3].long()
+        color_indices = color_indices.permute(2, 0, 1).contiguous()
+        
+        # 使用 class_dic_tensor 查找对应的 trainId BGR
+        seg_gt = class_dic_tensor[color_indices[2], color_indices[1], color_indices[0]]
+        
+        # 将 seg_gt 转换为灰度图
+        gray_seg_gt = seg_gt.cpu().numpy()
+        
+        #========================
+        name = os.path.basename(data['raw_seg_path']).split('_')[:-2]
+        new_name = '_'.join(name) + '_gtFine_weighted.png'
+        write_path = os.path.join(output_folder, new_name)
+        cv2.imwrite(write_path, gray_seg_gt)
         pass
     print('All Done!')
+    
+    
+    
+# =====================================cpu 处理========================================
+
+# if __name__ == '__main__':
+#     dataset_folder = '/home/wenhuanyao/Dataset/cityscapes/'
+#     use = 'train'
+#     mydataset = FeatureFusionDataset(dataset_folder, use=use, if_sp=False, raw_seg=True, weighted_seg=False)
+#     mydatasetloader = DataLoader(mydataset, batch_size=1, shuffle=False)
+#     output_folder = os.path.join(dataset_folder, use)
+    
+#     class_dic = {}
+#     for obj in labels:
+#         trainid = obj.trainId
+#         color = obj.color
+#         class_dic[color] = trainid
+    
+#     for i, data in tqdm(enumerate(mydataset)):
+#         img = data['raw_seg']
+#         raw_img = data['raw_img']
+#         H, W, _ = img.shape
+#         seg_gt = img.copy()
+        
+#         for h in range(H):
+#             for w in range(W):
+#                 color_ = tuple(int(c) for c in img[h, w][:3])
+#                 color = (color_[2], color_[1], color_[0])
+#                 if color in class_dic:
+#                     seg_gt[h, w][3] = class_dic[color]
+#                 else:
+#                     seg_gt[h, w][3] = 0
+                    
+#         grey_seg_gt = seg_gt[:, :, 3]
+#         # cv2.imwrite(os.path.join(output_folder, 'seg_gt', data['seg_gt_path']), seg_gt)
+#         cv2.imwrite('test_seg_gt.png', grey_seg_gt)
+#         # cv2.imwrite('raw_seg_gt.png', img)
+#         # cv2.imwrite('raw_img.png', raw_img)
+#         pass
+#     print('All Done!')
