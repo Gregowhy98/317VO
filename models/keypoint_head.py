@@ -30,13 +30,21 @@ class KeypointHeadNet(nn.Module):
         # detect
         cPa = self.convPa(x)
         semi = self.convPb(cPa)
+        semi = torch.exp(semi)
+        semi_norm = semi / (torch.sum(semi, dim=1, keepdim=True) + .00001)
+        score = semi_norm[:, :-1, :, :]
+        Hc, Wc = score.size(2), score.size(3)
+        score = score.permute([0, 2, 3, 1])
+        score = score.view(score.size(0), Hc, Wc, 8, 8)
+        score = score.permute([0, 1, 3, 2, 4])
+        score = score.contiguous().view(score.size(0), 1, Hc * 8, Wc * 8)
         
         # descriptor
         cDa = self.convDa(x)
         desc = self.convDb(cDa)
         desc = F.normalize(desc, dim=1)
         
-        return semi, desc
+        return score, semi_norm, desc   #, (out2c, out3c)
 
 def netron_vis_net():
     output_path = '/home/wenhuanyao/317VO/pretrained/keypointhead_vis.pth'

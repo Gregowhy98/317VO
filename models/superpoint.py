@@ -66,6 +66,22 @@ class SuperPointNet(torch.nn.Module):
     # Descriptor Head.
     self.convDa = torch.nn.Conv2d(c4, c5, kernel_size=3, stride=1, padding=1)
     self.convDb = torch.nn.Conv2d(c5, d1, kernel_size=1, stride=1, padding=0)
+  
+  def sp_process(self, img_tensor):
+    raw_img = img_tensor[0].cpu().numpy() 
+    if raw_img.ndim == 3:
+        img = cv2.cvtColor(raw_img, cv2.COLOR_BGR2GRAY)
+    else:
+        img = raw_img
+    img = img.astype(np.float32) / 255.0
+    assert img.ndim == 2, 'Image must be grayscale.'
+    assert img.dtype == np.float32, 'Image must be float32.'
+    H, W = img.shape[0], img.shape[1]
+    inp = img.copy()
+    inp = (inp.reshape(1, H, W))
+    inp = torch.from_numpy(inp)
+    inp = torch.autograd.Variable(inp).view(1, 1, H, W).cuda()
+    return inp
 
   def forward(self, x):
     """ Forward pass that jointly computes unprocessed point and descriptor
@@ -281,7 +297,7 @@ def pred_semi_desc():
     print(semi.shape)
     desc = pred[1].data.cpu().numpy().squeeze()
     print(desc.shape)
-    
+
 def pred_sp_front():
     weights_path = '/home/wenhuanyao/317VO/pretrained/superpoint_v1.pth'
     sp_front = SuperPointFrontend(weights_path, 4, 0.015, 0.7, True)
