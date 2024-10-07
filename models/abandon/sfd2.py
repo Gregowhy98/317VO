@@ -10,6 +10,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import cv2
+import numpy as np
+import netron
+
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
     """3x3 convolution with padding"""
@@ -368,6 +372,7 @@ class ResSegNetV2(nn.Module):
 
         out4 = self.conv4(out3c)
 
+        # Detector Head
         cPa = self.convPa(out4)
         semi = self.convPb(cPa)
         semi = torch.exp(semi)
@@ -401,9 +406,10 @@ class ResSegNetV2(nn.Module):
         else:
             return score, semi_norm, stability, desc
 
-    def forward(self, batch):
-        x = torch.cat([batch['image1'], batch['image2']], dim=0)
-
+    # def forward(self, batch):
+        # x = torch.cat([batch['image1'], batch['image2']], dim=0)  # b, 3, h, w -> 2b, 3, h, w
+    def forward(self, x):
+        
         if self.require_feature:
             score, semi, stability, desc, seg_feats = self.det_train(x)
             return {
@@ -423,13 +429,9 @@ class ResSegNetV2(nn.Module):
                 "stability": stability,
                 "desc": desc,
             }
+            
 
-
-if __name__ == "__main__":
-    
-    import cv2
-    import numpy as np
-    
+def infer_sdf2():
     img = cv2.imread('demo/demo_pic.png', cv2.IMREAD_GRAYSCALE)
     weights_path = '/home/wenhuanyao/sfd2/weights/20220810_ressegnetv2_wapv2_ce_sd2mfsf_uspg.pth'
     # cv2.imshow('image', img)
@@ -449,4 +451,13 @@ if __name__ == "__main__":
     # pred = sp(inp)   #superpoint model
     # semi = pred[0].data.cpu().numpy().squeeze()
     # dense = np.exp(semi) # Softmax.
+
+def netron_vis_net():
+    output_path = '/home/wenhuanyao/317VO/pretrained/sfd2_vis.pth'
+    net = ResSegNetV2()
+    torch.onnx.export(net, torch.randn(1, 3, 320, 640), output_path, verbose=True)
+    netron.start(output_path)
+
+if __name__ == "__main__":
+    netron_vis_net()
     pass

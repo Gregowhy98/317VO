@@ -85,7 +85,7 @@ class ResBlock(nn.Module):
     
     
 class SharedEncoder(nn.Module):
-    def __init__(self, in_channels=1, out_channels=256):
+    def __init__(self):
         super().__init__()
         
         d1, d2, d3, d4, d5, d6 = 64, 128, 256, 256, 256, 256
@@ -121,13 +121,13 @@ class SharedEncoder(nn.Module):
         out3c = self.bn3b(out3b)
 
         out = self.conv4(out3c)
-        return out
+        return out, out2c, out3c
     
 
 def netron_vis_net():
     output_path = '/home/wenhuanyao/317VO/pretrained/encoder_vis.pth'
     net = SharedEncoder()
-    torch.onnx.export(net, torch.randn(1, 3, 1024, 2048), output_path, verbose=True)
+    torch.onnx.export(net, torch.randn(1, 3, 320, 640), output_path, verbose=True)
     netron.start(output_path)
 
 

@@ -308,7 +308,7 @@ def pred_sp_front():
 def netron_vis_net():
     output_path = '/home/wenhuanyao/317VO/pretrained/superpoint_vis.pth'
     net = SuperPointNet()
-    torch.onnx.export(net, torch.randn(1, 1, 240, 320), output_path, verbose=True)
+    torch.onnx.export(net, torch.randn(1, 1, 320, 640), output_path, verbose=True)
     netron.start(output_path)
 
 if __name__ == "__main__":
