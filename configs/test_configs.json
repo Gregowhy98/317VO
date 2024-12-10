@@ -1,0 +1,38 @@
+{
+    "dataset_root_dir": "/home/wenhuanyao/Dataset/cityscapes/",
+    "pretrained_model": false,
+    "pretrained_model_dir": "pretrained/system_vis.pth",
+    "path_results": "results",
+    "path_checkpoints": "/home/wenhuanyao/317VO/results/checkpoints",
+
+    "device": "cuda",
+    "device_ids": 0,
+    "num_workers": 2,
+    "batch_size": 2,
+    "batch_size_val": 1,
+    "batch_size_test": 1,
+    "start_epoch": 0,
+    "num_epochs": 100,
+    "lr": 0.001,
+
+    "cols": 512,
+    "rows": 256,
+
+    "save_epoch": 10,
+    "save_optimizer": true,
+    "total_epochs": 200,
+
+    "superpoint": {
+        "nms_radius": 4,
+        "keypoint_threshold": 0.005,
+        "max_keypoints": 1024,
+        "descriptor_dim": 256,
+        "keypoint_oversample": 1,
+        "keypoint_nonmaxsuppression": 4,
+        "keypoint_remove_borders": 4,
+        "descriptor_window_size": 8,
+        "descriptor_nms_radius": 8,
+        "descriptor_threshold": 0.5,
+        "model_path": "pretrained/superpoint_v1.pth"
+    }
+}

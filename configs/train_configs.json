@@ -3,11 +3,12 @@
     "pretrained_model": false,
     "pretrained_model_dir": "pretrained/system_vis.pth",
     "path_results": "results",
+    "path_checkpoints": "/home/wenhuanyao/317VO/results/checkpoints",
 
     "device": "cuda",
     "device_ids": 0,
-    "num_workers": 4,
-    "batch_size": 32,
+    "num_workers": 2,
+    "batch_size": 2,
     "batch_size_val": 1,
     "batch_size_test": 1,
     "start_epoch": 0,
@@ -18,7 +19,8 @@
     "rows": 256,
 
     "save_epoch": 10,
-    "save_optimizer": false,
+    "save_optimizer": true,
+    "total_epochs": 200,
 
     "superpoint": {
         "nms_radius": 4,
