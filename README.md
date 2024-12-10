@@ -6,6 +6,16 @@
 
 ### dataset preparing
 
+download dataset:
+
+cityscapes
+
+xfeat gene: run xfeat_prelabel_gene.py
+
+
+
+
+
 structure:
 cityscapes
     - train
@@ -18,6 +28,8 @@ cityscapes
         - sp
             - zurich_000121_000019_spgt.np
             - ...
+        - xfeat
+            - zurich_000121_000019_leftImg8bit_xfeat.pkl
     - val
         - ...
     - test

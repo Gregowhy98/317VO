@@ -1,4 +1,3 @@
-from torch.utils.data import Dataset
 import numpy as np
 import cv2
 import torch
@@ -30,7 +29,7 @@ class CityScapesDataset(Dataset):
         raw_img_folder = os.path.join(self.dataset_folder, 'raw_img')
         self.raw_img_files = list_files(raw_img_folder)
         self.raw_img_files.sort()
-        self.N = len(self.raw_img_files) - 1
+        self.N = len(self.raw_img_files)
         print('find', self.N, 'raw imgs.')
         
     def __len__(self):
@@ -41,7 +40,7 @@ class CityScapesDataset(Dataset):
         raw_img = cv2.imread(self.raw_img_files[idx], cv2.COLOR_BGR2RGB)
         img_color = self.transform(raw_img)
         # img_color = torch.from_numpy(raw_img).permute(2, 0, 1).float()
-        return {'img_color': img_color} 
+        return {'img_color': img_color, 'path': self.raw_img_files[idx]} 
     
     
 if __name__ == '__main__':
