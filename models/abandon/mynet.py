@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from shared_encoder import SharedEncoder
-from line_head import LineHeadNet
-from keypoint_head import KeypointHeadNet
-from seg_head import SegmentHeadNet
+from .shared_encoder import SharedEncoder
+from .line_head import LineHeadNet
+from .keypoint_head import KeypointHeadNet
+from .seg_head import SegmentHeadNet
 
 import netron
 
@@ -46,7 +46,7 @@ class GreVONet(nn.Module):
             out4, out2c, out3c = self.shared_encoder(x)
             semi, desc, score, stability = self.keypoint_head(out4)
             # seg = self.seg_head(out4)
-            return out4, semi, desc, score, stability
+            return semi, desc, score, stability, out4
             
 def netron_vis_net():
     output_path = '/home/wenhuanyao/317VO/pretrained/system_vis.pth'
@@ -55,5 +55,5 @@ def netron_vis_net():
     netron.start(output_path)
     
 if __name__ == '__main__':
-    netron_vis_net()
+    # netron_vis_net()
     pass

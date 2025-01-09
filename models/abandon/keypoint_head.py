@@ -47,7 +47,7 @@ class KeypointHeadNet(nn.Module):
         desc = self.convDb(cDa)
         desc = F.normalize(desc, dim=1)   # 1 x 256 x Hc/4 x Wc/4
         
-        desc = F.interpolate(desc, size=(40, 80), mode='bilinear', align_corners=False)
+        desc = F.interpolate(desc, size=(Hc, Wc), mode='bilinear', align_corners=False)
         # dn = torch.norm(desc, p=2, dim=1) # Compute the norm.
         # desc = desc.div(torch.unsqueeze(dn, 1)) 
         

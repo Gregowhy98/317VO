@@ -30,13 +30,41 @@ def pred_sp_front(img_path, sp_front):
 def save_pred(pred, target_folder_path, f):
     pass
 
-def main():
-    use = 'val'
-    source_folder = '/home/wenhuanyao/Dataset/cityscapes/' + use + '/raw/'
-    target_path = os.path.join(source_folder, 'sp')
+# def gene_sp_gt_cityscapes():
+#     use = 'val'
+#     source_folder = '/home/wenhuanyao/Dataset/cityscapes/' + use + '/raw/'
+#     target_path = os.path.join(source_folder, 'sp')
+#     os.makedirs(target_path, exist_ok=True)
+    
+#     files = os.listdir(source_folder)
+#     files.sort()
+    
+#     weights_path = '/home/wenhuanyao/317VO/pretrained/superpoint_v1.pth'
+#     sp = SuperPointNet()
+#     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+#     sp.to(device)
+#     sp.eval()
+#     sp.load_state_dict(torch.load(weights_path))
+    
+#     # sp_front = SuperPointFrontend(weights_path, 4, 0.5, 0.7, True)
+    
+#     for f in files:
+#         if f.endswith('.png'):
+#             f_path = os.path.join(source_folder, f)
+#             # pred = predict_sp(f_path, sp)
+#             pts, desc, heatmap = pred_sp_front(f_path, sp_front)
+#             # save_pred(pred, target_path, f)
+#             pass
+#     print('Done')
+    
+def gene_sp_gt_wireframe():
+    use = 'train'
+    source_folder = '/home/wenhuanyao/Dataset/Wireframe'
+    img_folder = os.path.join(source_folder, 'v1.1/all')
+    target_path = os.path.join(source_folder, 'sp_gt')
     os.makedirs(target_path, exist_ok=True)
     
-    files = os.listdir(source_folder)
+    files = os.listdir(img_folder)
     files.sort()
     
     weights_path = '/home/wenhuanyao/317VO/pretrained/superpoint_v1.pth'
@@ -46,17 +74,19 @@ def main():
     sp.eval()
     sp.load_state_dict(torch.load(weights_path))
     
-    sp_front = SuperPointFrontend(weights_path, 4, 0.5, 0.7, True)
+    # sp_front = SuperPointFrontend(weights_path, 4, 0.5, 0.7, True)
     
     for f in files:
-        if f.endswith('.png'):
+        if f.endswith('.jpg'):
             f_path = os.path.join(source_folder, f)
-            # pred = predict_sp(f_path, sp)
-            pts, desc, heatmap = pred_sp_front(f_path, sp_front)
+            pred = predict_sp(f_path, sp)
+            desc = pred[0]
+            heatmap = pred[1]
+            # pts, desc, heatmap = pred_sp_front(f_path, sp_front)
             # save_pred(pred, target_path, f)
             pass
     print('Done')
 
 if __name__ == '__main__':
-    main()
+    gene_sp_gt_wireframe()
     pass

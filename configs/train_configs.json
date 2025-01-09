@@ -1,38 +1,42 @@
 {
-    "dataset_root_dir": "/home/wenhuanyao/Dataset/cityscapes/",
-    "pretrained_model": false,
-    "pretrained_model_dir": "pretrained/system_vis.pth",
-    "path_results": "results",
-    "path_checkpoints": "/home/wenhuanyao/317VO/results/checkpoints",
+    "dataset_root_dir": "/home/wenhuanyao/Dataset/Wireframe/",
+    "if_pretrained": false,
+    "pretrained_model_path": "pretrained/system_vis.pth",
+    "logs_save_dir": "/home/wenhuanyao/317VO/results",
+    "checkpoints_save_dir": "/home/wenhuanyao/317VO/results/checkpoints",
+
+    "cols": 640,
+    "rows": 480,
+    "split_train_val": 0.8,
 
     "device": "cuda",
-    "device_ids": 0,
-    "num_workers": 2,
-    "batch_size": 2,
+    "device_idx": "cuda",
+    "num_workers": 16,
+
+    "batch_size_train": 16,
     "batch_size_val": 1,
     "batch_size_test": 1,
+
     "start_epoch": 0,
-    "num_epochs": 100,
-    "lr": 0.001,
-
-    "cols": 512,
-    "rows": 256,
-
+    "num_epochs": 200,
+    "learning_rate": 1e-4,
     "save_epoch": 10,
     "save_optimizer": true,
     "total_epochs": 200,
 
-    "superpoint": {
-        "nms_radius": 4,
-        "keypoint_threshold": 0.005,
-        "max_keypoints": 1024,
-        "descriptor_dim": 256,
-        "keypoint_oversample": 1,
-        "keypoint_nonmaxsuppression": 4,
-        "keypoint_remove_borders": 4,
-        "descriptor_window_size": 8,
-        "descriptor_nms_radius": 8,
-        "descriptor_threshold": 0.5,
-        "model_path": "pretrained/superpoint_v1.pth"
+    "xfeat_configs": {
+        "num_layers": 18,
+        "pretrained": true,
+        "pretrained_path": "pretrained/resnet18-5c106cde.pth",
+        "num_classes": 256,
+        "num_keypoints": 1024,
+        "num_descriptors": 256,
+        "num_matches": 256,
+        "num_inliers": 128,
+        "num_iterations": 3,
+        "num_samples": 4,
+        "num_features": 256,
+        "num_channels": 64,
+        "num_keypoints_per_level": 1024
     }
 }

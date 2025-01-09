@@ -5,10 +5,13 @@ import cv2
 from torch.utils.data import DataLoader, Dataset
 import pickle
 from torchvision import transforms
+import json
 
 from models.xfeat.xfeat import XFeat
-from datasets.cityscapes import CityScapesDataset
-from datasets.wireframe import WireframeDataset
+from datasets.abandon.cityscapes import CityScapesDataset
+from datasets.wireframedataset import WireframePrepocessDataset
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def test_xfeat():
 	xfeat_weights = '/home/wenhuanyao/317VO/pretrained/xfeat.pt'
@@ -53,35 +56,35 @@ def cityscapes_xfeat_gene():
     print('Done')
 
  
-def wireframe_xfeat_gene():
-    use = 'train'   # 'train' 'test'
-    dataset_folder = '/home/wenhuanyao/Dataset/Wireframe'
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
-    
+def wireframe_xfeat_gene(dataset_folder, use='train', pts_num=2000, xfeat_weights=None):
     gt_folder_path = os.path.join(dataset_folder, 'xfeat_gt')
-    source_folder = os.path.join(gt_folder_path, use)
-    os.makedirs(source_folder, exist_ok=True)
+    os.makedirs(gt_folder_path, exist_ok=True)
     
     # init xfeat
-    xfeat_weights = '/home/wenhuanyao/317VO/pretrained/xfeat.pt'
     xfeat = XFeat(weights=xfeat_weights).to(device)
     
     # data prep
-    myDataset = WireframeDataset(dataset_folder, use=use, transform=None)
+    myDataset = WireframePrepocessDataset(dataset_folder, use=use, transform=None)
     myDatasetLoader = DataLoader(myDataset, batch_size=1, shuffle=False)
     
     for i, data in tqdm.tqdm(enumerate(myDatasetLoader), desc='processing'):
-        img = data['img']
-        x = xfeat.detectAndCompute(img, top_k = 2000)
+        img = data
+        x = xfeat.detectAndCompute(img, top_k = pts_num)
         pred = x[0]
-        dump_path = str(data['xfeat_path'][0]).strip()
-        dump_data(pred, dump_path)
+        pass
+        # dump_path = str(data['xfeat_path'][0]).strip()
+        # dump_data(pred, dump_path)
         
     print('Done')
     
 
 
 if __name__ == '__main__':
-    wireframe_xfeat_gene()
-    pass
+    configs = '/home/wenhuanyao/317VO/configs/prepocess_configs.json'
+    with open(configs, 'r') as f:
+        configs = json.load(f)
+        
+    wireframe_xfeat_gene(configs["dataset_folder"], use='train', pts_num=configs['xfeat']['max_keypoints'], xfeat_weights=configs['xfeat']['model_path'])
+    print('training data process done')
+
 

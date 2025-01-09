@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
-from datasets.mydataset import FeatureFusionDataset
+from datasets.abandon.mydataset import FeatureFusionDataset
 from collections import namedtuple
 
 
