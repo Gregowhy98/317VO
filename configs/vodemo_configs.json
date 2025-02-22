@@ -1,0 +1,28 @@
+{
+    "dataset_root_dir": "/home/wenhuanyao/Dataset/KITTI",
+    "pretrained_model_path": "pretrained/system_vis.pth",
+    "logs_save_dir": "/home/wenhuanyao/317VO/results/logs",
+    "output_save_dir": "/home/wenhuanyao/317VO/results/pose_estimation",
+
+    "device": "cuda",
+    "device_idx": "0",
+    "num_workers": 16,
+    "is_evo": false,
+
+    "demodataset": "kitti",
+    
+    "kitti":{
+        "dataset_root_dir": "/home/wenhuanyao/Dataset/KITTI",
+        "sequence": "00",
+        "cam": "0"
+    },
+
+    "xfeat": {
+        "nms_radius": 4,
+        "keypoint_threshold": 0.005,
+        "sparse_keypoints": 2000,
+        "dense_keypoints": 8000,
+        "descriptor_dim": 256,
+        "model_path": "/home/wenhuanyao/317VO/pretrained/xfeat.pt"
+    }
+}
