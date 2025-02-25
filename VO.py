@@ -78,9 +78,8 @@ def evo(configs):
         cv2.destroyAllWindows()
         print('evo analysis done!')
 
-def demo_vo():
+def demo_vo(config_path):
     #=================================init=======================================
-    config_path = '/home/wenhuanyao/317VO/configs/vodemo_configs.json'
     with open(config_path, 'r') as f:
         configs = json.load(f)
     device = torch.device(configs['device']+':'+configs['device_idx'] if torch.cuda.is_available() else "cpu")
@@ -116,4 +115,5 @@ def demo_vo():
     
     
 if __name__ == '__main__':
-    demo_vo()
+    config_path = '/home/wenhuanyao/317VO/configs/vodemo_configs.json'
+    demo_vo(config_path)

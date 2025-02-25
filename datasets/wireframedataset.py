@@ -99,14 +99,15 @@ class WireframePrepocessDataset(Dataset):
         self.img_list = [os.path.join(self.img_folder, x) for x in item_list]
         
     def __len__(self):
-        return self.N
+        return self.N - 1 
+        # return self.N - 1 
     
     def __getitem__(self, idx):
         # load img
         img_path = self.img_list[idx]
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)
         img_tensor = self.transform(img)
-        return img_tensor
+        return img_tensor, img_path
     
 if __name__ == '__main__':
     testPath = '/home/wenhuanyao/Dataset/Wireframe/' 

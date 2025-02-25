@@ -1,22 +1,16 @@
 {
     "dataset_folder": "/home/wenhuanyao/Dataset/Wireframe",
-    
-
     "device": "cuda",
-    "device_ids": 0,
-
+    "device_idx": "0",
     "num_workers": 2,
-    "batch_size": 2,
+    "batch_size": 1,
 
-    "cols": 512,
-    "rows": 256,
-
-    "xfeat": {
-        "nms_radius": 4,
-        "keypoint_threshold": 0.005,
-        "sparse_keypoints": 2000,
-        "dense_keypoints": 8000,
-        "descriptor_dim": 256,
-        "model_path": "/home/wenhuanyao/317VO/pretrained/xfeat.pt"
+    "save_folder": "/home/wenhuanyao/Dataset/Wireframe/seg_gt_yolo",
+    "use": "train",
+    "seg_model_path": "/home/wenhuanyao/YOLO/runs/segment/cityscapes_filtered_yolov8x_640x640_100eps_bs16/weights/best.onnx",
+    "class_groups": {
+        "static": [1, 2, 3,7,9,10,16,18,19,21,23,27],
+        "dynamic": [0,4,12,13,14,20,22,24,25,26],
+        "other": [5,6,8,11,15]
     }
 }
