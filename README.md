@@ -8,11 +8,11 @@
 
 download dataset:
 
-cityscapes
-
 xfeat gene: run xfeat_prelabel_gene.py
 
+wireframe is to generate 
 
+kitti is finally used to measure vo. 
 
 
 

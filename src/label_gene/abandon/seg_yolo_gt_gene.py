@@ -8,6 +8,21 @@ from models.yolo.net_inferencer import YOLOv8
 from torch.utils.data import Dataset, DataLoader
 from datasets.wireframedataset import WireframePrepocessDataset
 
+
+
+def generate_2d_mask(txt_file_path, target_folder, mask_size=(1024, 2048)):
+    img = np.zeros(mask_size, dtype=np.uint8)
+    with open(txt_file_path, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            line = line.strip()
+            items = line.split(' ')
+            class_id = int(items[0])
+            polygon = items[1:]
+            cls_mp = class_map(class_id=class_id, class_conf=class_conf)
+            img = draw_polygon(img, polygon, color_map[cls_mp], weight_map[cls_mp], thickness=1)
+    return img
+
 def save_yolo_seg_gt(img_path, save_folder, pred):
     if not os.path.exists(save_folder):
         os.makedirs(save_folder)
@@ -44,7 +59,7 @@ def run_yolo_seg(config_path):
     
     # load model
     seg_model = YOLOv8(configs['seg_model_path'], device=device)
-    class_groups = configs['class_groups']
+    # class_groups = configs['class_groups']
     
     # load data
     mydataset = WireframePrepocessDataset(configs['dataset_folder'], use=configs['use'], transform=None)    # use: train or test
@@ -57,6 +72,7 @@ def run_yolo_seg(config_path):
         save_yolo_seg_gt(img_path[0], configs['save_folder'], pred)  
         pass
     print('yolo seg done!')
+    
 
 if __name__ == '__main__':
     config_path = '/home/wenhuanyao/317VO/configs/prepocess_configs.json'

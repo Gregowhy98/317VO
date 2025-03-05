@@ -99,7 +99,7 @@ class WireframePrepocessDataset(Dataset):
         self.img_list = [os.path.join(self.img_folder, x) for x in item_list]
         
     def __len__(self):
-        return self.N - 1 
+        return self.N
         # return self.N - 1 
     
     def __getitem__(self, idx):

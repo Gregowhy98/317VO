@@ -1,6 +1,6 @@
 import os
 import numpy
-from utils import draw_2d_mask
+from src.utils import draw_2d_mask
 import cv2
 
 color_map = {

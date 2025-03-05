@@ -1,3 +1,4 @@
+
 import os
 import torch
 import tqdm
@@ -6,6 +7,7 @@ from torch.utils.data import DataLoader, Dataset
 import pickle
 from torchvision import transforms
 import json
+import numpy as np
 
 from models.xfeat.xfeat import XFeat
 from datasets.abandon.cityscapes import CityScapesDataset
@@ -77,6 +79,30 @@ def wireframe_xfeat_gene(dataset_folder, use='train', pts_num=2000, xfeat_weight
         
     print('Done')
     
+def save_xfeat_kpts(kpts, save_path):
+    kpts_np = kpts.cpu().numpy()
+    np.save(save_path, kpts_np)
+    
+    
+def wireframe_xfeat_kpts_gene(configs):
+    kpts_save_path = os.path.join(configs['dataset_folder'], 'xfeat_kpts_gt')
+    os.makedirs(kpts_save_path, exist_ok=True)
+    
+    # init xfeat
+    xfeat = XFeat(weights=configs['xfeat_kpts_gene']['model_path']).to(device)
+    
+    # data prep
+    myDataset = WireframePrepocessDataset(configs['dataset_folder'], use='train', transform=None)
+    myDatasetLoader = DataLoader(myDataset, batch_size=1, shuffle=False)
+    
+    for i, data in tqdm.tqdm(enumerate(myDatasetLoader), desc='processing'):
+        img = data[0]
+        name = os.path.basename(str(data[1][0])).strip().replace('.jpg','_kpts.npy')
+        x = xfeat.detectAndCompute(img, top_k = configs['xfeat_kpts_gene']['max_points'])
+        pred = x[0]
+        kpts = pred['keypoints']
+        save_xfeat_kpts(kpts, os.path.join(kpts_save_path, name))
+    
 
 
 if __name__ == '__main__':
@@ -84,7 +110,8 @@ if __name__ == '__main__':
     with open(configs, 'r') as f:
         configs = json.load(f)
         
-    wireframe_xfeat_gene(configs["dataset_folder"], use='train', pts_num=configs['xfeat']['max_keypoints'], xfeat_weights=configs['xfeat']['model_path'])
+    # wireframe_xfeat_gene(configs["dataset_folder"], use='train', pts_num=configs['xfeat']['max_keypoints'], xfeat_weights=configs['xfeat']['model_path'])
+    wireframe_xfeat_kpts_gene(configs)
     print('training data process done')
 
 

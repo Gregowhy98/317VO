@@ -9,13 +9,7 @@ from models.xfeat.xfeat import XFeat
 from models.xfeat.model import *
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# class XFeattest():
-#     def __init__(self, weights):
-#         self.net = XFeatModel().to(device).eval()
-#         self.net.load_state_dict(torch.load(weights))
         
-
 def xfeat_gt_gene(img_path, target_folder):
     img = cv2.imread(img_path, cv2.IMREAD_COLOR)
     save_path = os.path.join(target_folder, os.path.basename(img_path).replace('.jpg', '_xfeat.pkl'))
@@ -66,9 +60,6 @@ def sp_gt_gene():
     #         # save_pred(pred, target_path, f)
     #         pass
     # print('Done')
-    pass
-
-def yolo_gt_gene():
     pass
 
 
