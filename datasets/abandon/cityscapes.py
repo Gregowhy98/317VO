@@ -21,7 +21,7 @@ class CityScapesDataset(Dataset):
         else:
             self.transform = transforms.Compose([
                 transforms.ToPILImage(),
-                transforms.Resize((480, 640)),
+                transforms.Resize((800, 608)),
                 transforms.ToTensor()
                 ])
         

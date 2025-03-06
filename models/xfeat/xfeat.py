@@ -102,6 +102,67 @@ class XFeat(nn.Module):
 					'descriptors': feats[b][valid[b]]} for b in range(B) 
 			   ]
 
+
+	@torch.inference_mode()
+	def detectAndCompute_train(self, x, top_k = None, detection_threshold = None):
+		"""
+			Compute sparse keypoints & descriptors. Supports batched mode.
+
+			input:
+				x -> torch.Tensor(B, C, H, W): grayscale or rgb image
+				top_k -> int: keep best k features
+			return:
+				List[Dict]: 
+					'keypoints'    ->   torch.Tensor(N, 2): keypoints (x,y)
+					'scores'       ->   torch.Tensor(N,): keypoint scores
+					'descriptors'  ->   torch.Tensor(N, 64): local features
+		"""
+		if top_k is None: top_k = self.top_k
+		if detection_threshold is None: detection_threshold = self.detection_threshold
+		x, rh1, rw1 = self.preprocess_tensor(x)
+
+		B, _, _H1, _W1 = x.shape
+        
+		M1, K1, H1 = self.net(x)
+  
+		# M1 = F.normalize(M1, dim=1)
+
+		# #Convert logits to heatmap and extract kpts
+		# K1h = self.get_kpts_heatmap(K1)
+		# mkpts = self.NMS(K1h, threshold=detection_threshold, kernel_size=5)
+
+		# #Compute reliability scores
+		# _nearest = InterpolateSparse2d('nearest')
+		# _bilinear = InterpolateSparse2d('bilinear')
+		# scores = (_nearest(K1h, mkpts, _H1, _W1) * _bilinear(H1, mkpts, _H1, _W1)).squeeze(-1)
+		# scores[torch.all(mkpts == 0, dim=-1)] = -1
+
+		# #Select top-k features
+		# idxs = torch.argsort(-scores)
+		# mkpts_x  = torch.gather(mkpts[...,0], -1, idxs)[:, :top_k]
+		# mkpts_y  = torch.gather(mkpts[...,1], -1, idxs)[:, :top_k]
+		# mkpts = torch.cat([mkpts_x[...,None], mkpts_y[...,None]], dim=-1)
+		# scores = torch.gather(scores, -1, idxs)[:, :top_k]
+
+		# #Interpolate descriptors at kpts positions
+		# feats = self.interpolator(M1, mkpts, H = _H1, W = _W1)
+
+		# #L2-Normalize
+		# feats = F.normalize(feats, dim=-1)
+
+		# #Correct kpt scale
+		# mkpts = mkpts * torch.tensor([rw1,rh1], device=mkpts.device).view(1, 1, -1)
+
+		# valid = scores > 0
+		return [
+				   {'keypoints': M1,
+					'scores': K1,
+					'descriptors': H1}
+			   ]
+
+
+
+
 	@torch.inference_mode()
 	def detectAndComputeDense(self, x, top_k = None, multiscale = True):
 		"""

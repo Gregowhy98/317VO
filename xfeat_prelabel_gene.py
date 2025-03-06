@@ -29,9 +29,9 @@ def dump_data(pred, path):
         pickle.dump(pred, f, pickle.HIGHEST_PROTOCOL)
 
 def cityscapes_xfeat_gene():
-    use = 'train'   # 'train' 'val' 'test'
+    use = 'val'   # 'train' 'val' 'test'
     source_folder = os.path.join('/home/wenhuanyao/Dataset/cityscapes/', use)
-    target_path = os.path.join(source_folder, 'xfeat')
+    target_path = os.path.join(source_folder, 'xfeat_raw')
     os.makedirs(target_path, exist_ok=True)
     
     raw_img_folder = os.path.join(source_folder, 'raw_img')
@@ -41,19 +41,20 @@ def cityscapes_xfeat_gene():
     
     # init xfeat
     xfeat_weights = '/home/wenhuanyao/317VO/pretrained/xfeat.pt'
-    xfeat = XFeat(weights=xfeat_weights)
+    xfeat = XFeat(weights=xfeat_weights).to(device)
     
     # data prep
     myDataset = CityScapesDataset('/home/wenhuanyao/Dataset/cityscapes/', use=use, transform=None)
     myDatasetLoader = DataLoader(myDataset, batch_size=1, shuffle=False)
     
     for i, data in tqdm.tqdm(enumerate(myDatasetLoader), desc='processing'):
-        raw_img = data['img_color']
+        raw_img = data['img_color'].to(device)
         name = os.path.basename(str(data['path'][0])).strip().replace('.png','_xfeat.pkl')
+        
         x = xfeat.detectAndCompute(raw_img, top_k = 2000)
-        pred = x[0]
+        xx = xfeat.detectAndCompute_train(raw_img, top_k = 2000)
         dump_path = os.path.join(target_path, name)
-        dump_data(pred, dump_path)
+        dump_data(x, dump_path)
         
     print('Done')
 
@@ -85,14 +86,14 @@ def save_xfeat_kpts(kpts, save_path):
     
     
 def wireframe_xfeat_kpts_gene(configs):
-    kpts_save_path = os.path.join(configs['dataset_folder'], 'xfeat_kpts_gt')
+    kpts_save_path = os.path.join(configs['dataset_folder'], 'xfeat_kpts')
     os.makedirs(kpts_save_path, exist_ok=True)
     
     # init xfeat
     xfeat = XFeat(weights=configs['xfeat_kpts_gene']['model_path']).to(device)
     
     # data prep
-    myDataset = WireframePrepocessDataset(configs['dataset_folder'], use='train', transform=None)
+    myDataset = WireframePrepocessDataset(configs['dataset_folder'], use='test', transform=None)
     myDatasetLoader = DataLoader(myDataset, batch_size=1, shuffle=False)
     
     for i, data in tqdm.tqdm(enumerate(myDatasetLoader), desc='processing'):
@@ -111,7 +112,8 @@ if __name__ == '__main__':
         configs = json.load(f)
         
     # wireframe_xfeat_gene(configs["dataset_folder"], use='train', pts_num=configs['xfeat']['max_keypoints'], xfeat_weights=configs['xfeat']['model_path'])
-    wireframe_xfeat_kpts_gene(configs)
+    # wireframe_xfeat_kpts_gene(configs)
+    cityscapes_xfeat_gene()
     print('training data process done')
 
 
